@@ -2,8 +2,11 @@
 A project for design patterns classes implementing a simple piggyback server using NodeJS and AngularJS.
 ## Linki do diagramów
 
-* PU/class/sequence:
-https://drive.google.com/file/d/17NsQQ1RONKSsNVQDVN8mzHA01HI8PY81/view?usp=sharing
+Odpalanie (branch server0.1):
+
+nodejs serverDemo.js
+
+i w przeglądarce localhost:3000
 
 ## Metoda piggyback
 Metoda piggyback jest jedną z metod wykorzystujących 'Reverse AJAX'. Zalicza się do nich m.in. metody 'Comet', 'Polling', 'Long Polling'. Polega na odsyłaniu przez serwer odpowiedzi na zapytanie klienta wraz z dodatkowymi informacjami/eventami pojawiającymi się pomiędzy kolejnymi zapytaniami. Działanie metody piggyback na diagramie:

@@ -1,0 +1,14 @@
+<html>
+<head>
+  <!--- importing AJAX angularJS--->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+  <script type="text/javascript" src="ctrl.js"></script> <!--- here's a controller --->
+</head>
+<body>
+  <div ng-app="client" ng-controller="cliCtrl">
+    <button ng-click=sendRequest()>Click me</button>
+    <p>Log: </p>
+    <p ng-repeat="x in log">{{x}}</p>
+  </div>
+</body>
+</html>
