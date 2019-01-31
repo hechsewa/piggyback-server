@@ -4,9 +4,9 @@ var events = require('events'); //for event emitting
 var eventEmitter = new events.EventEmitter(); // Create an eventEmitter object
 
 var express = require('express'); //import express into a var
-var app = express(); //execute express
-
 var fs = require('fs'); //file system from npm
+
+var app = express(); //execute express
 
 var server = app.listen(3000, listening); //create a server
 
@@ -20,12 +20,12 @@ function listening() {
 //use this folder to host files
 app.use(express.static('public'));
 
-//do POST requestow
+//for POST requests (later maybe)
 var bodyParser = require('body-parser');
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
-//TUTAJ KONFIGURACJA LOGA
+//create a json log every time a new request is sent
 var eLog;
 //json file to store events
 function createLog(){
@@ -33,20 +33,17 @@ function createLog(){
      console.log('creating new event log');
   //return eLog;
 }
-
 createLog();
 
-var eventCount = 0;
-//TUTAJ GENEROWANIE LOSOWYCH EVENTOW
-var listner = function listner(){
+var eventCount = 0; //event from event emitter count
 
-   app.get('/', (req, res) =>
-    res.setStatus(200));
+/********** UNCOMMENT IF YOU WANT EXTRA EVENTS *********************/
+
+var listner = function listner(){
    console.log('Event came');
    //tutaj dodaj event do pliku json
    var evTime = new Date();
    eLog['eventer'+eventCount]='event no.'+eventCount+' at '+evTime;
-
    var json = JSON.stringify(eLog, null, 2);
    fs.writeFile('eventslog.json', json, 'utf8', finished);
    function finished(err) {
@@ -64,6 +61,8 @@ function emitRandomEvents() {
 }
 emitRandomEvents();
 
+/* **************************************************************** */
+
 function processEvents(eventCount){
   if(eventCount != 0){
     console.log(eventCount+' events received');
@@ -73,36 +72,111 @@ function processEvents(eventCount){
   }
 }
 
-//TUTAJ ODSYLANIE ODPOWIEDZI NA SUBMIT
-//dodajemy nowy event po wcisnieciu przycisku
-app.get('/add/:name', addEvent);
+//iterator po obiekcie json: zwraca wartosc klucza
+//DESIGN PATTERN: ITERATOR OVER JSON OBJECTS/JSON KEYS
+var Iterator = function(json){
+  this.index = 0;
+  var keys = [];
+  for (var x in json){
+    keys.push(x);
+  }
+  this.json = keys;
+}
 
-var count = 0;
-// Handle that route
+Iterator.prototype = {
+  first: function() {
+    this.reset();
+    return this.next();
+  },
+  get : function(key) {
+    var res;
+    while(this.hasNext()){
+      if(this.json[this.index]==key){
+        res = this.json[this.index+1];
+        break;
+      } else res = false;
+      this.index += 1;
+    }
+    return res;
+  },
+  last: function() {
+    return this.json[this.json.length-1];
+  },
+  prev: function() {
+    return this.json[this.json.length-(this.index++)];
+  },
+  next: function() {
+    return this.json[this.index++];
+  },
+  hasNext: function() {
+    return this.index <= this.json.length;
+  },
+  reset: function() {
+    this.index = 0;
+  }
+}
+
+//PREPARE THE RESPONSE: zwraca obiekt json z eventami które zdarzyły się od czasu
+//ostatniego requestu
+var sLog;
+function getYourResponse(cliId){
+  sLog={};
+  var searchLog = fs.readFileSync('eventslog.json');
+  sLog = JSON.parse(searchLog);
+  //console.log(sLog);
+  var it = new Iterator(sLog);
+  var result = {};
+  //format to get the previous id
+  var lastChar = Number(cliId.slice(-1));
+  var prev = cliId.substring(0, cliId.length-1)+(lastChar-1);
+  //console.log(prev);
+  if(prev != false) {
+      for (var item = it.get(prev); it.hasNext(); item=it.next()){
+        if(item == prev){
+          continue;
+        } else {
+          //console.log(item);
+          result[item]=sLog[item];
+        }
+      }
+  } else {
+        for(var i = it.first(); it.hasNext(); item=it.next()){
+          result[i]=sLog[i];
+        }
+  }
+  result[cliId]='['+cliId+'] Request response';
+  //console.log(result);
+  return result;
+}
+
+//handle client requests (pushing a button)
+//dodajemy nowy event po wcisnieciu przycisku
+app.get('/add/:name/:id', addEvent);
+
+var count = 0; //count button presses
+
+//Handle that route
 function addEvent(req, res) {
   var nameE = req.params.name + count; //dodajemy counter bo inaczej w logu sie nadpisze
+  var clientId = req.params.id;
+  console.log(clientId);
   var timeE = new Date();
   // Put it in the object
   var reply = {
-    name: nameE,
+    name: clientId,
     time: timeE
   }
-  count = count+1;
-
-  eLog[nameE] = 'Sent request at '+timeE;
+  count += 1;
+  eventCount += 1;
+  eLog[clientId] = '['+clientId+'] Sent request at '+timeE;
 
   processEvents(eventCount);
-  console.log('adding: ' + nameE + ":" +timeE);
 
   // Write a file each time we get a new word
   var json = JSON.stringify(eLog, null, 2);
   fs.writeFile('eventslog.json', json, 'utf8', finished);
   function finished(err) {
-    //var reJson = fs.readFile('eventslog.json', 'utf8');
-    console.log('Finished writing events');
-    // Don't send anything back until everything is done
-    createLog();
-    res.send(json);
-    eventCount=0;
+    var results = getYourResponse(clientId);
+    res.send(results);
   }
 }
