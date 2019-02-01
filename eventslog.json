@@ -1,16 +1,8 @@
 {
-  "name": "log created at Thu Jan 31 2019 16:08:18 GMT+0100 (CET)",
-  "eventer0": "event no.0 at Thu Jan 31 2019 16:08:18 GMT+0100 (CET)",
-  "eventer1": "event no.1 at Thu Jan 31 2019 16:08:19 GMT+0100 (CET)",
-  "eventer2": "event no.2 at Thu Jan 31 2019 16:08:22 GMT+0100 (CET)",
-  "ccg1": "[ccg1] Sent request at Thu Jan 31 2019 16:08:24 GMT+0100 (CET)",
-  "eventer4": "event no.4 at Thu Jan 31 2019 16:08:26 GMT+0100 (CET)",
-  "ccg2": "[ccg2] Sent request at Thu Jan 31 2019 16:08:30 GMT+0100 (CET)",
-  "xlu1": "[xlu1] Sent request at Thu Jan 31 2019 16:08:32 GMT+0100 (CET)",
-  "eventer7": "event no.7 at Thu Jan 31 2019 16:08:33 GMT+0100 (CET)",
-  "xlu2": "[xlu2] Sent request at Thu Jan 31 2019 16:08:38 GMT+0100 (CET)",
-  "eventer9": "event no.9 at Thu Jan 31 2019 16:08:41 GMT+0100 (CET)",
-  "ccg3": "[ccg3] Sent request at Thu Jan 31 2019 16:08:42 GMT+0100 (CET)",
-  "eventer11": "event no.11 at Thu Jan 31 2019 16:08:44 GMT+0100 (CET)",
-  "xlu3": "[xlu3] Sent request at Thu Jan 31 2019 16:08:44 GMT+0100 (CET)"
+  "name": "log created at Fri Feb 01 2019 14:40:49 GMT+0100 (GMT+01:00)",
+  "bcv73": "[bcv73] Sent request at Fri Feb 01 2019 14:40:51 GMT+0100 (GMT+01:00)",
+  "bcv74": "[bcv74] Sent request at Fri Feb 01 2019 14:40:52 GMT+0100 (GMT+01:00)",
+  "jut56": "[jut56] Sent request at Fri Feb 01 2019 14:40:55 GMT+0100 (GMT+01:00)",
+  "jut57": "[jut57] Sent request at Fri Feb 01 2019 14:40:55 GMT+0100 (GMT+01:00)",
+  "bcv75": "[bcv75] Sent request at Fri Feb 01 2019 14:40:57 GMT+0100 (GMT+01:00)"
 }
