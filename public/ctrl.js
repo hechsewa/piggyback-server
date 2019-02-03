@@ -5,7 +5,7 @@ client.controller("cliCtrl", ['$scope', '$http', function($scope, $http){
     //$scope.ip='';
 
     //create Iterator for json object
-    function Iterator(json){
+    function pushEvents(json){
       var strEvent = [];
       for(var key in json){
         if( !json.hasOwnProperty(key) || key==='name') continue;
@@ -37,10 +37,10 @@ client.controller("cliCtrl", ['$scope', '$http', function($scope, $http){
         $scope.clientid = $scope.id+$scope.cnt;
         $scope.events = [];
         var timeNow = new Date();
-        var url = '/add/ButtonClicked/'+$scope.clientid+'/';
+        var url = '/add/'+$scope.clientid+'/';
         //zaladuj obiekt ktory zwroci url servera
         $http.get(url).then(function(res){
-          var events = Iterator(res.data);
+          var events = pushEvents(res.data);
           //console.log(events);
           //$scope.events.push(events);
         });

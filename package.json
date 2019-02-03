@@ -1,9 +1,9 @@
 {
   "scripts": {
-    "start": "node serverDemo.js"
+    "start": "node demo.js"
   },
   "name": "piggyback_API",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "dependencies": {
     "express": "^4.16.4"
   }
