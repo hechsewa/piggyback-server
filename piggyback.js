@@ -9,13 +9,14 @@
 /**
  * Expose proper functions & objects
  */
-module.exports = {piggyServer, processEvents, Iterator, Dao, emitRandomEvents, getYourResponse, handleRoute};
+module.exports = {piggyServer, processEvents, Iterator, Dao, emitRandomEvents, getYourResponse, getMethod, postMethod, clientGenerator};
 
 /*MODULE IMPORTS */
 var events = require('events'); //for event emitting
 var eventEmitter = new events.EventEmitter(); // Create an eventEmitter object
 var express = require('express'); //import express into a var
 var fs = require('fs'); //file system from npm
+var bodyParser = require('body-parser'); //for parsing POST requests
 
 /* MODULE VARIABLES */
 var app = express(); //init express
@@ -40,6 +41,8 @@ function piggyServer(portno, dirname, filename) {
 
   //use this folder to host files
   app.use(express.static(dirname));
+  app.use(bodyParser.json()); // support json encoded bodies
+  app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
   //create new log;
   dao = new Dao(filename);
@@ -47,13 +50,13 @@ function piggyServer(portno, dirname, filename) {
 }
 
 
-/* Function: handleRoute(path) @public
+/* Function: getMethod(path) @public
 *  handles route and prepares response
 *  @params {String} path
 *  path format needs to be: /:id/
 */
-function handleRoute(path) {
-  app.get(path, addEvent);
+function getMethod(path) {
+  app.get(path, getEvent);
 }
 
 /* Function: addEvent(request, response) @private
@@ -61,9 +64,41 @@ function handleRoute(path) {
 *  @params {String} res
 *
 */
-function addEvent(req, res) {
+function getEvent(req, res) {
   eventCount = 0;
   var client = req.params.id;
+  var timer = new Date();
+  //put event info in the object
+  var reply = {
+    name: client,
+    time: timer
+  }
+  count += 1;
+  eventCount += 1;
+  eLog[client] = '['+client+'] Sent request at '+timer;
+  // Write a file each time we get a new word
+  dao.writeFile(eLog);
+  var results = getYourResponse(client);
+  processEvents(eventCount);
+  res.send(results);
+}
+
+
+/* Function: postMethod(path) @public
+*  handles post requests and prepares response
+*  @params {String} path
+*  @params {JSON} data
+*/
+function postMethod(path){
+  app.post(path, postEvent);
+}
+/* Function: postEvent(request, response) @private
+*  @params {String} req
+*  @params {*} res
+*
+*/
+function postEvent(req, res){
+  var client = req.body.ident;
   var timer = new Date();
   //put event info in the object
   var reply = {
@@ -153,7 +188,6 @@ Iterator.prototype = {
 *   writeFile() - saves text to a json file
 *   createLog() - creates an empty json file for holding events
 */
-
 var Dao = function(filename){
     this.filename = filename;
 }
@@ -233,15 +267,26 @@ function getYourResponse(cliId){
           continue;
         } else {
           result[item]=sLog[item];
-          eventCount += 1;
         }
       }
   } else {
         for(var i = it.first(); it.hasNext(); item=it.next()){
           result[i]=sLog[i];
-          eventCount += 1;
         }
   }
   result[cliId]='['+cliId+'] Request response';
   return result;
+}
+
+/*Function: clientGenerator() @public
+* generates client ids
+* @returns {String} txt
+*
+*/
+function clientGenerator() {
+    var txt = "";
+    var possible = "abcdefghijklmnopqrstuvwxyz";
+    for (var i = 0; i < 3; i++)
+      txt += possible.charAt(Math.floor(Math.random() * possible.length));
+    return txt;
 }
