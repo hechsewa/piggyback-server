@@ -11,7 +11,7 @@ i w przeglądarce localhost:3000
 ## Metoda piggyback
 Metoda piggyback jest jedną z metod wykorzystujących 'Reverse AJAX'. Zalicza się do nich m.in. metody 'Comet', 'Polling', 'Long Polling'. Polega na odsyłaniu przez serwer odpowiedzi na zapytanie klienta wraz z dodatkowymi informacjami/eventami pojawiającymi się pomiędzy kolejnymi zapytaniami. Działanie metody piggyback na diagramie:
 
-![alt text](https://raw.githubusercontent.com/hechsewa/piggyback-server/master/docs/imgs/piggyback-diagram.gif)
+![alt text](https://raw.githubusercontent.com/hechsewa/piggyback-server/master/imgs/piggyback-diagram.gif)
 
 
 Zalety metody piggyback:

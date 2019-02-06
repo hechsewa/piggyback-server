@@ -1,5 +1,6 @@
 <html>
 <head>
+  <title>LogBox</title>
   <!--- importing AJAX angularJS--->
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
   <script type="text/javascript" src="ctrl.js"></script> <!--- here's a controller --->
@@ -7,12 +8,22 @@
   <script>
 
   </script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body ng-controller="eventsCtrl">
-  <div ng-app="client" ng-controller="cliCtrl">
-    <button ng-click=sendRequest()>Click me</button>
-    <div>Log:
-    <p ng-repeat="x in events">{{x}}</p>
+    <nav class="navbar-fluid navbar-default navbar-fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="#"> LogBox </a>
+          <p class="navbar-text"> Send your log!</p>
+        </div>
+    </nav>
+  <div class="col-md-offset-2 col-md-8">
+    <div ng-app="client" ng-controller="cliCtrl">
+      <button class="btn submit-btn" ng-click=sendRequest()>Click me!</button>
+      <div>Server response:
+      <p class="post" ng-repeat="x in events" ng-class-odd="'odd'" ng-class-even="'even'">{{x}}</p>
+      </div>
     </div>
   </div>
 </body>
