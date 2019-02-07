@@ -25,7 +25,6 @@ client.controller("cliCtrl", ['$scope', '$http', function($scope, $http){
 
     $scope.cnt=0;
     $scope.id = makeid();
-
     //send a get request to server
     /*
     $scope.sendRequest = function(){
