@@ -9,11 +9,11 @@
 /**
  * Expose proper functions & objects
  */
-module.exports = {piggyServer, processEvents, Iterator, Dao, EmitRandomEvents, getYourResponse, getMethod, postMethod, clientGenerator};
+module.exports = {piggyServer, processEvents, Iterator, Dao, emitRandomEvents, getYourResponse, getMethod, postMethod, clientGenerator};
 
 /*MODULE IMPORTS */
-var EventEmitter = require('events').EventEmitter; //for event emitting
-//var eventEmitter = new events.EventEmitter(); // Create an eventEmitter object
+var events = require('events'); //for event emitting
+var EventEmitter = new events.EventEmitter(); // Create an eventEmitter object
 var util = require('util'); //to use function inherits()
 var express = require('express'); //import express into a var
 var fs = require('fs'); //file system from npm
@@ -26,7 +26,6 @@ var eventCount = 0; //counts events
 var sLog;
 var count = 0; //counts number of requests from the same client
 var dao;
-var emiterObj;
 
 /* Function piggyServer() @public
 * creates a piggyback server and listens
@@ -49,9 +48,6 @@ function piggyServer(portno, dirname, filename) {
   //create new log;
   dao = new Dao(filename);
   dao.createLog();
-
-  emiterObj = new EmitRandomEvents();
-  emiterObj.emitEvents();
 }
 
 
@@ -237,29 +233,18 @@ var listner = function listner(){
    }
   eventCount += 1;
 }
-emiterObj.connectListener();
-//EventEmitter.addListener('eventer', listner);
+EventEmitter.addListener('eventer', listner);
 
 
 //OBSERVER
-function EmitRandomEvents(){
-  EventEmitter.call(this);
-}
-util.inherits(EmitRandomEvents, EventEmitter); //EmitRandomEvents extends EventEmitter
+
 /* Function: emitRandomEvents()
 /* emits extra,'fake' events for checking the server functionality
 */
-EmitRandomEvents.prototype= {
-  connectListener: function() {
-    var self = this;
-    self.addListener('eventer', listner); //connect listener with emitter
-  },
-  emitEvents: function() {
-    var self = this;
-    self.emit('eventer');
+function emitRandomEvents(){
+    EventEmitter.emit('eventer');
     var delay = Math.floor((Math.random() * 10) + 1); //opoznienie losowe
-    setTimeout(emitEvents, delay*1000);
-  }
+    setTimeout(emitRandomEvents, delay*1000);
 }
 
 
