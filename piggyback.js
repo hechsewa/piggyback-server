@@ -2,15 +2,13 @@
 'use strict'
 /** A module implementing piggback server including:
 - Iterator for key attributes of JSON OBJECTS
-- DAO Object for JSON files
--
-**/
+- DAO Object for JSON files (keys)
+- Factory method for preparing a response for both post and get request
 
 /**
  * Expose proper functions & objects
  */
-module.exports = {piggyServer, processEvents, Iterator, Dao, emitRandomEvents, getYourResponse, getMethod, postMethod, clientGenerator};
-
+module.exports = {piggyServer, processEvents, emitRandomEvents, getYourResponse, handleReq, clientGenerator};
 /*MODULE IMPORTS */
 var events = require('events'); //for event emitting
 var EventEmitter = new events.EventEmitter(); // Create an eventEmitter object
@@ -46,74 +44,88 @@ function piggyServer(portno, dirname, filename) {
   app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
   //create new log;
-  dao = new Dao(filename);
+  dao = new LogDao(filename);
   dao.createLog();
 }
 
-
-/* Function: getMethod(path) @public
-*  handles route and prepares response
-*  @params {String} path
-*  path format needs to be: /:id/
+/* Function Factory() @private
+*Factory function acts like a creator object
+* function takeMethod(type, path)
+*   takes type of method and an absolute path
+*   @returns {*} methodApp
 */
-function getMethod(path) {
-  app.get(path, getEvent);
+function Factory() {
+  this.takeMethod = function(type, path_){
+    var path = path_;
+    var methodApp;
+
+    if (type=="get"){
+      methodApp = new getMethod(path);
+    } else if (type =="post"){
+      methodApp = new postMethod(path);
+    }
+
+    //factory method: the same for both post and get requests
+    methodApp.serveEvent = function(client) {
+      var timer = new Date();
+      //put event info in the object
+      var reply = {
+        name: client,
+        time: timer
+      }
+      count += 1;
+      eventCount += 1;
+      eLog[client] = '['+client+'] Sent request at '+timer;
+      // Write a file each time we get a new word
+      dao.writeFile(eLog);
+      var results = getYourResponse(client);
+      processEvents(eventCount);
+      return results;
+    }
+
+    return methodApp;
+  }
 }
 
-/* Function: addEvent(request, response) @private
-*  @params {String} req
-*  @params {String} res
+/* Concrete Creators */
+var getMethod = function(path) {
+  this.path = path;
+  this.method = 'get';
+}
+
+var postMethod = function(path){
+  this.path = path;
+  this.method = 'post';
+}
+
+/*Function handleReq() @public
+*takes method type and a path and sends the server's response
+* @param {String} type
+* @param {String} path
 *
 */
-function getEvent(req, res) {
-  eventCount = 0;
-  var client = req.params.id;
-  var timer = new Date();
-  //put event info in the object
-  var reply = {
-    name: client,
-    time: timer
+function handleReq(type, path) {
+  //create a creator object for factory method handler
+  var handler = new Factory().takeMethod(type, path);
+  if(type=='get'){
+    app.get(path, (req, res)=>{
+      eventCount = 0;
+      var client = req.params.id;
+      //use of factory method
+      var rep = handler.serveEvent(client);
+      res.send(rep);
+    });
+  } else if (type=='post') {
+    app.post(path, (req, res)=> {
+      eventCount = 0;
+      var client = req.body.ident;
+      //use of factory method
+      var rep = handler.serveEvent(client);
+      res.send(rep);
+    });
+  } else {
+    console.log('Wrong method');
   }
-  count += 1;
-  eventCount += 1;
-  eLog[client] = '['+client+'] Sent request at '+timer;
-  // Write a file each time we get a new word
-  dao.writeFile(eLog);
-  var results = getYourResponse(client);
-  processEvents(eventCount);
-  res.send(results);
-}
-
-
-/* Function: postMethod(path) @public
-*  handles post requests and prepares response
-*  @params {String} path
-*  @params {JSON} data
-*/
-function postMethod(path){
-  app.post(path, postEvent);
-}
-/* Function: postEvent(request, response) @private
-*  @params {String} req
-*  @params {*} res
-*
-*/
-function postEvent(req, res){
-  var client = req.body.ident;
-  var timer = new Date();
-  //put event info in the object
-  var reply = {
-    name: client,
-    time: timer
-  }
-  count += 1;
-  eventCount += 1;
-  eLog[client] = '['+client+'] Sent request at '+timer;
-  // Write a file each time we get a new word
-  dao.writeFile(eLog);
-  var results = getYourResponse(client);
-  processEvents(eventCount);
-  res.send(results);
 }
 
 /*
@@ -145,21 +157,22 @@ function processEvents(eventCount){
     @returns {Boolean} Bool
 *   reset() - resets iterator index to the beginning (0)
 */
-var Iterator = function(json){
-  this.index = 0;
-  var keys = [];
-  for (var x in json){
-    keys.push(x);
+class JsonIterator {
+  constructor(json) {
+    this.index = 0;
+    var keys = [];
+    for (var x in json){
+      keys.push(x);
+    }
+    this.json = keys;
   }
-  this.json = keys;
-}
 
-Iterator.prototype = {
-  first: function() {
+  first() {
     this.reset();
     return this.next();
-  },
-  get : function(key) {
+  }
+
+  get(key) {
     var res;
     while(this.hasNext()){
       if(this.json[this.index]==key){
@@ -169,17 +182,21 @@ Iterator.prototype = {
       this.index += 1;
     }
     return res;
-  },
-  next: function() {
+  }
+
+  next() {
     return this.json[this.index++];
-  },
-  hasNext: function() {
+  }
+
+  hasNext() {
     return this.index <= this.json.length;
-  },
-  reset: function() {
+  }
+
+  reset() {
     this.index = 0;
   }
 }
+
 
 /* Data Access Object for json file holding events log
 * @param {String} filename
@@ -189,21 +206,23 @@ Iterator.prototype = {
 *   writeFile() - saves text to a json file
 *   createLog() - creates an empty json file for holding events
 */
-var Dao = function(filename){
+class LogDao {
+  constructor(filename) {
     this.filename = filename;
-}
+  }
 
-Dao.prototype = {
-  readFile: function(sLog) {
+  readFile(sLog){
     var searchLog = fs.readFileSync(this.filename);
     sLog = JSON.parse(searchLog);
     return sLog;
-  },
-  writeFile: function(logText) {
+  }
+
+  writeFile(logText) {
     var json = JSON.stringify(logText, null, 2);
     fs.writeFileSync(this.filename, json, 'utf8');
-  },
-  createLog: function() {
+  }
+
+  createLog() {
     var eLog = { name: 'log created at '+new Date() };
     eLog = JSON.stringify(eLog, null, 2);
     if (fs.existsSync(this.filename)) {
@@ -217,6 +236,7 @@ Dao.prototype = {
     }
   }
 }
+
 
 
 /* @private event emitter listner
@@ -259,7 +279,7 @@ function getYourResponse(cliId){
   sLog={}; //init sLog json object
   sLog=dao.readFile(); //get events for json file to json object
 
-  var it = new Iterator(sLog); //new json iterator
+  let it = new JsonIterator(sLog); //new json iterator
   var result = {}; //init result json object
 
   //format to get the previous id
