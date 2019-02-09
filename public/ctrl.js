@@ -9,12 +9,13 @@ client.controller("cliCtrl", ['$scope', '$http', function($scope, $http){
       for(var key in json){
         if( !json.hasOwnProperty(key) || key==='name') continue;
         //dla kazdej wartosci z obiektu json: dodaj do tablicy i do html
-        strEvent.push(json[key]);
+        //strEvent.push(json[key]);
         $scope.events.push(json[key]);
       }
     }
 
     //generate unique client id
+
     function makeid() {
       $scope.text = "";
       var possible = "abcdefghijklmnopqrstuvwxyz";
@@ -23,13 +24,12 @@ client.controller("cliCtrl", ['$scope', '$http', function($scope, $http){
       return $scope.text;
     }
 
-    $scope.cnt=0;
+  
     $scope.id = makeid();
     //send a get request to server
     /*
     $scope.sendRequest = function(){
-        $scope.cnt += 1;
-        $scope.clientid = $scope.id+$scope.cnt;
+        $scope.clientid = $scope.id;
         $scope.events = [];
         var timeNow = new Date();
         var url = '/add/'+$scope.clientid+'/';
@@ -41,8 +41,7 @@ client.controller("cliCtrl", ['$scope', '$http', function($scope, $http){
 
     //send a post request
     $scope.sendRequest = function() {
-      $scope.cnt += 1;
-      $scope.clientid = $scope.id+$scope.cnt;
+      $scope.clientid = $scope.id;
       $scope.events = [];
       var timeNow = new Date();
       var url = '/';

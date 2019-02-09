@@ -12,7 +12,6 @@ module.exports = {piggyServer, processEvents, emitRandomEvents, getYourResponse,
 /*MODULE IMPORTS */
 var events = require('events'); //for event emitting
 var EventEmitter = new events.EventEmitter(); // Create an eventEmitter object
-var util = require('util'); //to use function inherits()
 var express = require('express'); //import express into a var
 var fs = require('fs'); //file system from npm
 var bodyParser = require('body-parser'); //for parsing POST requests
@@ -24,6 +23,7 @@ var eventCount = 0; //counts events
 var sLog;
 var count = 0; //counts number of requests from the same client
 var dao;
+var clientCounterTab = {}; // indexes - id, values - counters of requests
 
 /* Function piggyServer() @public
 * creates a piggyback server and listens
@@ -111,6 +111,7 @@ function handleReq(type, path) {
     app.get(path, (req, res)=>{
       eventCount = 0;
       var client = req.params.id;
+      lient = client+getRequestNumber(client);
       //use of factory method
       var rep = handler.serveEvent(client);
       res.send(rep);
@@ -119,6 +120,7 @@ function handleReq(type, path) {
     app.post(path, (req, res)=> {
       eventCount = 0;
       var client = req.body.ident;
+      client = client+getRequestNumber(client);
       //use of factory method
       var rep = handler.serveEvent(client);
       res.send(rep);
@@ -126,6 +128,21 @@ function handleReq(type, path) {
   } else {
     console.log('Wrong method');
   }
+}
+
+/* Function getRequestNumber()
+* Returns counter of request
+*  @param {String} client
+*  @returns {Integer}
+*/
+function getRequestNumber(client){
+  if (!clientCounterTab[client]){
+    clientCounterTab[client] = 1;
+  }
+  else {
+    clientCounterTab[client]= clientCounterTab[client]+1;
+  }
+  return clientCounterTab[client];
 }
 
 /*
@@ -255,8 +272,6 @@ var listner = function listner(){
 }
 EventEmitter.addListener('eventer', listner);
 
-
-//OBSERVER
 
 /* Function: emitRandomEvents()
 /* emits extra,'fake' events for checking the server functionality
