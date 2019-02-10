@@ -70,6 +70,10 @@ function Factory() {
     //factory method: the same for both post and get requests
     methodApp.serveEvent = function(client, text) {
       //put event info in the object
+      if (text==null || text=='') {
+        text = 'Request response';
+      }
+
       var reply = {
         name: client,
         msg: text
@@ -80,6 +84,7 @@ function Factory() {
       // Write a file each time we get a new word
       dao.writeFile(eLog);
       var results = getYourResponse(client);
+      results[client] = text;
       return results;
     }
 
@@ -141,11 +146,11 @@ function handleReq(type, path) {
 */
 function makeId(client){
   var clientId;
-  //if client not exists create new id
+  //if client doesnt exist, create new id
   if(!clientIdTab[client]){
     clientId = clientCounter;
     clientIdTab[client]=clientCounter;
-    clientCounter++; 
+    clientCounter++;
   }
   else{
     clientId = clientIdTab[client];
@@ -324,6 +329,6 @@ function getYourResponse(cliId){
           result[i]=sLog[i];
         }
   }
-  result[cliId]='Request response';
+  //result[cliId]='Request response';
   return result;
 }
