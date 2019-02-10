@@ -2,8 +2,7 @@ var client = angular.module("client",[]);
 
 client.controller("cliCtrl", ['$scope', '$http', function($scope, $http){
     $scope.events = [];
-    $scope.oneEvent = {logId: '', text: ''};
-    
+
     //push events from json object to html, each by each
     function pushEvents(json){
       var strEvent = [];
@@ -11,12 +10,7 @@ client.controller("cliCtrl", ['$scope', '$http', function($scope, $http){
         if( !json.hasOwnProperty(key) || key==='name') continue;
         //dla kazdej wartosci z obiektu json: dodaj do tablicy i do html
         strEvent.push(json[key]);
-        console.log(key);
-        $scope.oneEvent.logId = key;
-        $scope.oneEvent.text = json[key];
-        $scope.events.push($scope.oneEvent);
-        //$scope.events.push(json[key]);
-        $scope.oneEvent = {logId: '', text: ''};
+        $scope.events.push(json[key]);
       }
     }
 
@@ -29,22 +23,17 @@ client.controller("cliCtrl", ['$scope', '$http', function($scope, $http){
         $scope.text += possible.charAt(Math.floor(Math.random() * possible.length));
       return $scope.text;
     }
-    
+
   
     $scope.id = makeid();
-    
     //send a get request to server
-   /* 
+    /*
     $scope.sendRequest = function(){
         $scope.clientid = $scope.id;
-        $scope.text = $scope.oneEvent.text;
-        if ($scope.text == ""){
-          $scope.text == "null";
-          console.log("tu");
-        }
-        //?????
         $scope.events = [];
         var timeNow = new Date();
+        $scope.msg = '['+$scope.clientid+'] Sent request at '+timeNow;
+        $scope.text = $scope.msg;
         var url = '/add/'+$scope.clientid+'/'+$scope.text+'/';
         //zaladuj obiekt ktory zwroci url servera
         $http.get(url).then(function(res){
@@ -60,7 +49,7 @@ client.controller("cliCtrl", ['$scope', '$http', function($scope, $http){
       var url = '/';
       var data = {
         ident: $scope.clientid,
-        text: $scope.oneEvent.text
+        text: '['+$scope.clientid+'] Sent request at '+timeNow
       };
       $http.post(url, data).then(function(res){
         var events = pushEvents(res.data);

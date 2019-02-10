@@ -20,14 +20,9 @@
     </nav>
   <div class="col-md-offset-2 col-md-8">
     <div ng-app="client" ng-controller="cliCtrl">
-        <form>
-            <textarea required = true class="form-control" maxlength="200" rows="3" placeholder="Say something" ng-model="oneEvent.text"></textarea>
-        </form>
       <button class="btn submit-btn" ng-click=sendRequest()>Click me!</button>
       <div>Server response:
-      <p class="post" ng-repeat="x in events" ng-class-odd="'odd'" ng-class-even="'even'">
-        LogID: {{x.logId}}  Text: {{x.text}}
-      </p>
+      <p class="post" ng-repeat="x in events" ng-class-odd="'odd'" ng-class-even="'even'">{{x}}</p>
       </div>
     </div>
   </div>
