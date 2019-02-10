@@ -76,7 +76,7 @@ function Factory() {
       }
       count += 1;
       eventCount += 1;
-      eLog[client] = client + ' '+text;
+      eLog[client] = text;
       // Write a file each time we get a new word
       dao.writeFile(eLog);
       var results = getYourResponse(client);
