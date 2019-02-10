@@ -2,26 +2,26 @@ var client = angular.module("client",[]);
 
 client.controller("cliCtrl", ['$scope', '$http', function($scope, $http){
     $scope.events = [];
-    //$scope.ip='';
-
-    //create Iterator for json object
-    function Iterator(json){
+    $scope.oneEvent = {logId: '', text: ''};
+    
+    //push events from json object to html, each by each
+    function pushEvents(json){
       var strEvent = [];
       for(var key in json){
         if( !json.hasOwnProperty(key) || key==='name') continue;
-        //dla kazdej wartosci z obiektu json: dodaj do tablicy, wydrukuj w konsoli
+        //dla kazdej wartosci z obiektu json: dodaj do tablicy i do html
         strEvent.push(json[key]);
-        $scope.events.push(json[key]);
-        //console.log(json[key]);
+        console.log(key);
+        $scope.oneEvent.logId = key;
+        $scope.oneEvent.text = json[key];
+        $scope.events.push($scope.oneEvent);
+        //$scope.events.push(json[key]);
+        $scope.oneEvent = {logId: '', text: ''};
       }
     }
-    //get client's ip address
-    /*$http.get("https://ipinfo.io/json").then(function (response)
-		{
-			$scope.ip = response.data.ip;
-		});*/
 
-    //wygeneruj id do odrozniania klientow
+    //generate unique client id
+
     function makeid() {
       $scope.text = "";
       var possible = "abcdefghijklmnopqrstuvwxyz";
@@ -29,20 +29,41 @@ client.controller("cliCtrl", ['$scope', '$http', function($scope, $http){
         $scope.text += possible.charAt(Math.floor(Math.random() * possible.length));
       return $scope.text;
     }
-    $scope.cnt=0;
+    
+  
     $scope.id = makeid();
-    //send a request to server
+    
+    //send a get request to server
+   /* 
     $scope.sendRequest = function(){
-        $scope.cnt += 1;
-        $scope.clientid = $scope.id+$scope.cnt;
+        $scope.clientid = $scope.id;
+        $scope.text = $scope.oneEvent.text;
+        if ($scope.text == ""){
+          $scope.text == "null";
+          console.log("tu");
+        }
+        //?????
         $scope.events = [];
         var timeNow = new Date();
-        var url = '/add/ButtonClicked/'+$scope.clientid+'/';
+        var url = '/add/'+$scope.clientid+'/'+$scope.text+'/';
         //zaladuj obiekt ktory zwroci url servera
         $http.get(url).then(function(res){
-          var events = Iterator(res.data);
-          //console.log(events);
-          //$scope.events.push(events);
+          var events = pushEvents(res.data);
         });
+    }*/
+
+    //send a post request
+    $scope.sendRequest = function() {
+      $scope.clientid = $scope.id;
+      $scope.events = [];
+      var timeNow = new Date();
+      var url = '/';
+      var data = {
+        ident: $scope.clientid,
+        text: $scope.oneEvent.text
+      };
+      $http.post(url, data).then(function(res){
+        var events = pushEvents(res.data);
+      });
     }
 }]);

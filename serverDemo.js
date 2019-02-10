@@ -37,31 +37,7 @@ createLog();
 
 var eventCount = 0; //event from event emitter count
 
-/********** UNCOMMENT IF YOU WANT EXTRA EVENTS *********************/
 
-var listner = function listner(){
-   console.log('Event came');
-   //tutaj dodaj event do pliku json
-   var evTime = new Date();
-   eLog['eventer'+eventCount]='event no.'+eventCount+' at '+evTime;
-   var json = JSON.stringify(eLog, null, 2);
-   fs.writeFile('eventslog.json', json, 'utf8', finished);
-   function finished(err) {
-   console.log(json);
-    }
-   eventCount += 1;
-}
-
-eventEmitter.addListener('eventer', listner); //powiaz emitter z listnerem
-
-function emitRandomEvents() {
-    eventEmitter.emit('eventer');
-    var delay = Math.floor((Math.random() * 10) + 1); //opoznienie losowe
-    setTimeout(emitRandomEvents, delay*1000);
-}
-emitRandomEvents();
-
-/* **************************************************************** */
 
 function processEvents(eventCount){
   if(eventCount != 0){
@@ -116,13 +92,57 @@ Iterator.prototype = {
   }
 }
 
+//DAO
+var Dao = function(filename){
+    this.filename = filename;
+}
+
+Dao.prototype = {
+  readFile: function() {
+    var searchLog = fs.readFileSync(this.filename);
+    sLog = JSON.parse(searchLog);
+    return sLog;
+  },
+  writeFile: function(logText) {
+    var json = JSON.stringify(logText, null, 2);
+    fs.writeFileSync(this.filename, json, 'utf8');
+  }
+}
+
+var dao = new Dao('eventslog.json');
+
+
+/********** UNCOMMENT IF YOU WANT EXTRA EVENTS *********************/
+
+var listner = function listner(){
+  console.log('Event came');
+  //tutaj dodaj event do pliku json
+  var evTime = new Date();
+  eLog['eventer'+eventCount]='event no.'+eventCount+' at '+evTime;
+  dao.writeFile(eLog);
+  function finished(err) {
+  console.log(json);
+   }
+  eventCount += 1;
+}
+
+eventEmitter.addListener('eventer', listner); //powiaz emitter z listnerem
+
+function emitRandomEvents() {
+   eventEmitter.emit('eventer');
+   var delay = Math.floor((Math.random() * 10) + 1); //opoznienie losowe
+   setTimeout(emitRandomEvents, delay*1000);
+}
+emitRandomEvents();
+
+/* **************************************************************** */
+
 //PREPARE THE RESPONSE: zwraca obiekt json z eventami które zdarzyły się od czasu
 //ostatniego requestu
 var sLog;
 function getYourResponse(cliId){
   sLog={};
-  var searchLog = fs.readFileSync('eventslog.json');
-  sLog = JSON.parse(searchLog);
+  sLog=dao.readFile();
   //console.log(sLog);
   var it = new Iterator(sLog);
   var result = {};
@@ -173,10 +193,7 @@ function addEvent(req, res) {
   processEvents(eventCount);
 
   // Write a file each time we get a new word
-  var json = JSON.stringify(eLog, null, 2);
-  fs.writeFile('eventslog.json', json, 'utf8', finished);
-  function finished(err) {
-    var results = getYourResponse(clientId);
-    res.send(results);
-  }
+  dao.writeFile(eLog);
+  var results = getYourResponse(clientId);
+  res.send(results);
 }
