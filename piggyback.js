@@ -297,7 +297,7 @@ function emitRandomEvents(){
 *  prepares the piggyback response to client's request
 *  @params {String} cliId
 *  @returns {JSON} result
-*  client id format: [char][char][char][number]
+*  client id format: [number]_[number]
 */
 function getYourResponse(cliId){
   sLog={}; //init sLog json object
