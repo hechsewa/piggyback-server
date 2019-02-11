@@ -30,9 +30,3 @@ a {
 .even {
 	background-color: #eceff3;
 }
-
-.form-auth {
-	max-width: 330px;
-	padding: 5px;
-	margin: 0 auto;
-}

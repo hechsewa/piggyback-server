@@ -8,7 +8,7 @@
 /**
  * Expose proper functions & objects
  */
-module.exports = {piggyServer, processEvents, emitRandomEvents, getYourResponse, handleReq, clientGenerator};
+module.exports = {piggyServer, emitRandomEvents, handleReq};
 /*MODULE IMPORTS */
 var events = require('events'); //for event emitting
 var EventEmitter = new events.EventEmitter(); // Create an eventEmitter object
@@ -21,8 +21,9 @@ var app = express(); //init express
 var eLog = {};
 var eventCount = 0; //counts events
 var sLog;
-var count = 0; //counts number of requests from the same client
 var dao;
+var clientCounter =1; //counts number of clients
+var clientIdTab = {}; //table of unique ids
 var clientCounterTab = {}; // indexes - id, values - counters of requests
 
 /* Function piggyServer() @public
@@ -55,6 +56,7 @@ function piggyServer(portno, dirname, filename) {
 *   @returns {*} methodApp
 */
 function Factory() {
+  //factory method: the same for both post and get requests
   this.takeMethod = function(type, path_){
     var path = path_;
     var methodApp;
@@ -64,22 +66,21 @@ function Factory() {
     } else if (type =="post"){
       methodApp = new postMethod(path);
     }
-
-    //factory method: the same for both post and get requests
-    methodApp.serveEvent = function(client) {
-      var timer = new Date();
+    methodApp.serveEvent = function(client, text) {
       //put event info in the object
+      if (text==null || text=='') {
+        text = 'Request response';
+      }
+
       var reply = {
         name: client,
-        time: timer
+        msg: text
       }
-      count += 1;
-      eventCount += 1;
-      eLog[client] = '['+client+'] Sent request at '+timer;
+      eLog[client] = text;
       // Write a file each time we get a new word
       dao.writeFile(eLog);
       var results = getYourResponse(client);
-      processEvents(eventCount);
+      results[client] = text;
       return results;
     }
 
@@ -87,7 +88,7 @@ function Factory() {
   }
 }
 
-/* Concrete Creators */
+/* Concrete Products */
 var getMethod = function(path) {
   this.path = path;
   this.method = 'get';
@@ -109,25 +110,46 @@ function handleReq(type, path) {
   var handler = new Factory().takeMethod(type, path);
   if(type=='get'){
     app.get(path, (req, res)=>{
-      eventCount = 0;
-      var client = req.params.id;
-      lient = client+getRequestNumber(client);
+      var client = req.params.id; //unique name required
+      var text = req.params.msg;
+      client  = makeId(client);
+      client = client+'_'+getRequestNumber(client);
       //use of factory method
-      var rep = handler.serveEvent(client);
+      var rep = handler.serveEvent(client, text);
       res.send(rep);
     });
   } else if (type=='post') {
     app.post(path, (req, res)=> {
-      eventCount = 0;
-      var client = req.body.ident;
-      client = client+getRequestNumber(client);
+      var client = req.body.ident; //unique name required
+      var text = req.body.text;
+      client  = makeId(client);
+      client = client+'_'+getRequestNumber(client);
       //use of factory method
-      var rep = handler.serveEvent(client);
+      var rep = handler.serveEvent(client, text);
       res.send(rep);
     });
   } else {
     console.log('Wrong method');
   }
+}
+
+/* Function makeId()
+* Returns client's id
+*  @param {String} client
+*  @returns {Integer}
+*/
+function makeId(client){
+  var clientId;
+  //if client doesnt exist, create new id
+  if(!clientIdTab[client]){
+    clientId = clientCounter;
+    clientIdTab[client]=clientCounter;
+    clientCounter++;
+  }
+  else{
+    clientId = clientIdTab[client];
+  }
+  return clientId;
 }
 
 /* Function getRequestNumber()
@@ -145,19 +167,6 @@ function getRequestNumber(client){
   return clientCounterTab[client];
 }
 
-/*
-* Function: processEvents
-* check and display in console current events count
-*
-*/
-function processEvents(eventCount){
-  if(eventCount != 0){
-    console.log(eventCount+' events received');
-    //wczytaj eventy z jsona
-  } else {
-    console.log('no events');
-  }
-}
 
 /*
 * Iterator object over JSON object's keys
@@ -261,7 +270,7 @@ class LogDao {
 * and increments event count
 */
 var listner = function listner(){
-  console.log('[simulator] Event came');
+  //console.log('[simulator] Event came');
   var evTime = new Date();
   eLog['eventer'+eventCount]='event no.'+eventCount+' at '+evTime;
   dao.writeFile(eLog);
@@ -293,13 +302,12 @@ function emitRandomEvents(){
 function getYourResponse(cliId){
   sLog={}; //init sLog json object
   sLog=dao.readFile(); //get events for json file to json object
-
   let it = new JsonIterator(sLog); //new json iterator
   var result = {}; //init result json object
 
   //format to get the previous id
-  var lastChar = Number(cliId.slice(-1));
-  var prev = cliId.substring(0, cliId.length-1)+(lastChar-1);
+  var charTab = cliId.split('_');
+  var prev = charTab[0]+'_'+(charTab[1]-1);
 
   //iterate over the object and get the results starting from previous request until this one
   if(prev != false) {
@@ -315,19 +323,5 @@ function getYourResponse(cliId){
           result[i]=sLog[i];
         }
   }
-  result[cliId]='['+cliId+'] Request response';
   return result;
-}
-
-/*Function: clientGenerator() @public
-* generates client ids
-* @returns {String} txt
-*
-*/
-function clientGenerator() {
-    var txt = "";
-    var possible = "abcdefghijklmnopqrstuvwxyz";
-    for (var i = 0; i < 3; i++)
-      txt += possible.charAt(Math.floor(Math.random() * possible.length));
-    return txt;
 }

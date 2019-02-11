@@ -22,7 +22,7 @@
     <div ng-app="client" ng-controller="cliCtrl">
       <button class="btn submit-btn" ng-click=sendRequest()>Click me!</button>
       <div>Server response:
-      <p class="post" ng-repeat="x in events" ng-class-odd="'odd'" ng-class-even="'even'">{{x}}</p>
+      <p class="post" ng-repeat="x in events track by $index" ng-class-odd="'odd'" ng-class-even="'even'">{{x}}</p>
       </div>
     </div>
   </div>
