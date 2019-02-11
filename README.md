@@ -15,7 +15,7 @@ Pros:
 Cons:
 - it can be a long time before some major server change will be visible to clients (when a client doesn't send any requests, they cannot see current server changes)
 
-##how to run demo app
+## how to run demo app
 
 ```
 node demo.js
@@ -27,7 +27,7 @@ in web browser:
 localhost:3030
 ```
 
-##sample demo app output
+## sample demo app output
 
 ![alt text](https://raw.githubusercontent.com/hechsewa/piggyback-server/master/imgs/screen2.png)
 
